@@ -1,6 +1,7 @@
 import { EventCreated, QrCodeClaimed } from "../generated/EventManager/EventManager"
 import { CreatedEvent, QrCodeClaimed as QrCodeClaimedEntity } from "../generated/schema"
 import { Bytes, ipfs, json, log } from "@graphprotocol/graph-ts"
+import { JSONValueKind } from "@graphprotocol/graph-ts/common/value";
 
 export function handleEventCreated(event: EventCreated): void {
   const id = event.params.eventAddress.toHexString();
@@ -26,10 +27,22 @@ export function handleEventCreated(event: EventCreated): void {
   entity.startDate = parseInt(jsonData.get("startDate")!.toString()) as i32;
   entity.endDate = parseInt(jsonData.get("endDate")!.toString()) as i32;
   entity.organiserEmail = jsonData.get("organiserEmail")!.toString();
-  entity.ticketCount = jsonData.get("ticketCount")!.toU64() as i32;
+
+  if (jsonData.get("ticketCount")!.kind === JSONValueKind.STRING) {
+    entity.ticketCount = parseInt(jsonData.get("ticketCount")!.toString()) as i32;
+  } else {
+    entity.ticketCount = jsonData.get("ticketCount")!.toU64() as i32;
+  }
+
   entity.ticketPrice = jsonData.get("ticketPrice")!.toString();
   entity.ticketCurrency = Bytes.fromHexString(jsonData.get("ticketCurrency")!.toString());
-  entity.royaltyPercentage = jsonData.get("royaltyPercentage")!.toI64() as i32;
+
+  if (jsonData.get("royaltyPercentage")!.kind === JSONValueKind.STRING) {
+    entity.royaltyPercentage = parseInt(jsonData.get("royaltyPercentage")!.toString()) as i32;
+  } else {
+    entity.royaltyPercentage = jsonData.get("royaltyPercentage")!.toI64() as i32;
+  }
+
   entity.distributePoaps = jsonData.get("distributePoaps")!.toBool();
 
   entity.save();
